@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brugg // Paranormal Index</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00f2ff;
+            --bg: #0a0a0c;
+            --panel: rgba(20, 20, 25, 0.85);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: #d1d1d1;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, .tech-font {
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100vw;
+            background: #000;
+        }
+
+        /* Minimalist Leaflet Overrides */
+        .leaflet-container { background: #000 !important; }
+        .leaflet-bar { border: none !important; }
+        .leaflet-bar a { 
+            background-color: var(--panel) !important; 
+            color: var(--accent) !important; 
+            border: 1px solid rgba(0, 242, 255, 0.2) !important;
+        }
+
+        /* Cinematic UI Overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            border: 1px solid rgba(0, 242, 255, 0.1);
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
+        }
+
+        .side-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 350px;
+            max-height: calc(100vh - 40px);
+            background: var(--panel);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            z-index: 1001;
+            padding: 20px;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .side-panel.hidden {
+            transform: translateX(400px);
+        }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 242, 255, 0.1);
+            position: absolute;
+            top: 0;
+            animation: scan 8s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .marker-pulse {
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 0 rgba(0, 242, 255, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 242, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div class="overlay">
+        <div class="scanline"></div>
+        <!-- Technical HUD elements -->
+        <div class="absolute bottom-10 left-10 tech-font text-[10px] opacity-40">
+            LOC_BRUGG_SWITZERLAND // 47.4853° N, 8.2085° E<br>
+            STREAMS: ACTIVE // SENSORS: NOMINAL
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="sidePanel" class="side-panel hidden">
+        <div class="flex justify-between items-start mb-4">
+            <h2 id="eventTitle" class="text-xl font-bold text-cyan-400">Select Node</h2>
+            <button onclick="closePanel()" class="text-xs opacity-50 hover:opacity-100">[ CLOSE ]</button>
+        </div>
+        <div class="text-[10px] text-cyan-500 mb-4 tech-font opacity-70">
+            Subject: <span id="eventSubject">N/A</span><br>
+            Coordinates: <span id="eventCoords">N/A</span>
+        </div>
+        <div id="eventContent" class="overflow-y-auto text-sm leading-relaxed text-gray-400 border-t border-cyan-900/50 pt-4">
+            Select a highlighted data point on the map to decrypt historical records.
+        </div>
+        <div class="mt-auto pt-4 tech-font text-[9px] opacity-30">
+            VERIFIED_RECORD_774-B // ACCESS_PUBLIC
+        </div>
+    </div>
+
+    <!-- Header Overlay -->
+    <div class="absolute top-6 left-10 z-[1001] pointer-events-none">
+        <h1 class="text-2xl font-bold text-white mb-1">Brugg <span class="text-cyan-500">Myths</span></h1>
+        <div class="h-[1px] w-32 bg-cyan-500/50"></div>
+        <p class="text-[9px] tech-font opacity-50 mt-1">Digital Paranormal Archives</p>
+    </div>
+
+    <script>
+        // --- DATASET ---
+        // You can easily add more events here following this format
+        const events = [
+            {
+                id: 1,
+                title: "The Black Tower",
+                subject: "Residual Haunting",
+                coords: [47.4850, 8.2105],
+                content: "Built in the 12th century, the 'Schwarzer Turm' is Brugg's oldest structure. Locals report a silent figure watching from the upper windows during the winter solstice. Historical records mention a jailer who disappeared in 1644 without a trace, leaving only a set of keys on the floor of a locked cell.",
+                type: "Ghost"
+            },
+            {
+                id: 2,
+                title: "Aare River Whispers",
+                subject: "Auditory Phenomenon",
+                coords: [47.4862, 8.2120],
+                content: "At the narrowest point of the Aare, near the bridge, cyclists often report hearing their names called from beneath the rushing water. Legend speaks of the 'River Maidens' who pull the curious into the deep currents of the Habsburg era.",
+                type: "Myth"
+            },
+            {
+                id: 3,
+                title: "Vindonissa Ruins",
+                subject: "Legionary Shadows",
+                coords: [47.4795, 8.2215],
+                content: "The site of a former Roman Legion camp. Night guards have recorded thermal anomalies in the shape of marching formations. Some say the 11th Legion 'Claudia Pia Fidelis' never truly abandoned their post, even after 2000 years.",
+                type: "Paranormal"
+            },
+            {
+                id: 4,
+                title: "Prophet's Alley",
+                subject: "Prophetic Vision",
+                coords: [47.4855, 8.2090],
+                content: "A hidden narrow passage where a local visionary allegedly predicted the Great Fire of Brugg. It is said that if you walk the alley backwards at midnight, you can see the town as it looked centuries ago.",
+                type: "Dark Event"
+            }
+        ];
+
+        // Initialize Map
+        const map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([47.485, 8.210], 15);
+
+        // Add Dark Mode Tiles
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 20
+        }).addTo(map);
+
+        // Add Zoom Control to the bottom right
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // Function to open side panel
+        function openEvent(event) {
+            document.getElementById('eventTitle').innerText = event.title;
+            document.getElementById('eventSubject').innerText = event.subject;
+            document.getElementById('eventCoords').innerText = `${event.coords[0]}, ${event.coords[1]}`;
+            document.getElementById('eventContent').innerText = event.content;
+            document.getElementById('sidePanel').classList.remove('hidden');
+        }
+
+        function closePanel() {
+            document.getElementById('sidePanel').classList.add('hidden');
+        }
+
+        // Add Markers to Map
+        events.forEach(event => {
+            const icon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div class="marker-pulse"></div>`,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+
+            const marker = L.marker(event.coords, { icon: icon }).addTo(map);
+            
+            marker.on('click', () => {
+                map.flyTo(event.coords, 17, { duration: 1.5 });
+                openEvent(event);
+            });
+        });
+
+        // Close panel if map is clicked
+        map.on('click', () => closePanel());
+    </script>
+</body>
+</html>
