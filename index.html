@@ -11,6 +11,7 @@
     <style>
         :root {
             --accent: #00f2ff;
+            --accent-hazard: #ff3e3e;
             --bg: #0a0a0c;
             --panel: rgba(20, 20, 25, 0.85);
         }
@@ -92,6 +93,7 @@
             100% { top: 100%; }
         }
 
+        /* Standard Marker */
         .marker-pulse {
             width: 12px;
             height: 12px;
@@ -101,10 +103,26 @@
             animation: pulse 2s infinite;
         }
 
+        /* Creature/Hazard Marker - Larger and Red */
+        .marker-pulse-hazard {
+            width: 18px;
+            height: 18px;
+            background: var(--accent-hazard);
+            border-radius: 50%;
+            box-shadow: 0 0 0 rgba(255, 62, 62, 0.4);
+            animation: pulse-hazard 1.5s infinite;
+        }
+
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.7); }
             70% { box-shadow: 0 0 0 15px rgba(0, 242, 255, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
+        }
+
+        @keyframes pulse-hazard {
+            0% { box-shadow: 0 0 0 0 rgba(255, 62, 62, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 62, 62, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 62, 62, 0); }
         }
 
         ::-webkit-scrollbar { width: 4px; }
@@ -200,10 +218,10 @@
                 type: "Ancient Curse"
             },
             {
-                id: 7,
+                id: 7, 
                 title: "The Three Knocks",
                 subject: "The Tower's Hidden Vault",
-                coords: [47.486120, 8.206750], // Side-by-side with Schwarzer Turm
+                coords: [47.486120, 8.206750],
                 content: "Locals whisper about a tiny, unmarked door in the Black Tower. If you knock three times and say a greeting, the 'Invisible Sentinel' might leave the door unlocked—or knock back. Some claim to have found the door slightly ajar on Tuesday nights, leading to a vault that doesn't appear on any architectural plans of the city.",
                 type: "Secret Code"
             },
@@ -222,6 +240,14 @@
                 coords: [47.4852, 8.2076],
                 content: "In the weeks preceding the winter solstice, the streets of the Brugg district resonate with the deafening sound of long whips cracking against the night air. This is an ancient tradition intended to 'drive away winter spirits' and startle the town into vigilance. To an outsider, the rhythmic, thunderous acoustic signals served as an intimidating warning to unwanted strangers and spirits alike.",
                 type: "Ancient Ritual"
+            },
+            {
+                id: 10,
+                title: "The Rollibock",
+                subject: "The Glacier Guardian",
+                coords: [47.495050, 8.215560], // Placed in the Bruggerberg forest/mountain area
+                content: "An ancient creature described as a massive, ice-encrusted goat-like entity. Guarding the high peaks and nature itself, the Rollibock punishes those who mistreat the environment. It features terrifying branch-like horns and glowing eyes. Sightings are often accompanied by a terrifying roar and the clattering sound of ice shards covering its massive body.",
+                type: "Creature"
             }
         ];
 
@@ -246,6 +272,14 @@
             document.getElementById('eventCoords').innerText = `${event.coords[0]}, ${event.coords[1]}`;
             document.getElementById('eventContent').innerText = event.content;
             document.getElementById('sidePanel').classList.remove('hidden');
+            
+            // Highlight color based on type
+            const titleEl = document.getElementById('eventTitle');
+            if(event.type === 'Creature') {
+                titleEl.style.color = 'var(--accent-hazard)';
+            } else {
+                titleEl.style.color = 'var(--accent)';
+            }
         }
 
         function closePanel() {
@@ -254,9 +288,12 @@
 
         // Add Markers to Map
         events.forEach(event => {
+            const isHazard = event.type === 'Creature';
+            const iconClass = isHazard ? 'marker-pulse-hazard' : 'marker-pulse';
+            
             const icon = L.divIcon({
                 className: 'custom-div-icon',
-                html: `<div class="marker-pulse"></div>`,
+                html: `<div class="${iconClass}"></div>`,
                 iconSize: [20, 20],
                 iconAnchor: [10, 10]
             });
