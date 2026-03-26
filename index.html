@@ -10,10 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=Inter:wght@300;400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --accent: #00f2ff;
+            --accent: #6BFF8A; /* Alien Phosphor Green */
             --accent-hazard: #ff3e3e;
             --bg: #0a0a0c;
-            --panel: rgba(20, 20, 25, 0.85);
+            --panel: rgba(15, 15, 20, 0.9);
         }
 
         body {
@@ -36,14 +36,16 @@
             background: #000;
         }
 
+        /* Minimalist Leaflet Overrides */
         .leaflet-container { background: #000 !important; }
         .leaflet-bar { border: none !important; }
         .leaflet-bar a { 
             background-color: var(--panel) !important; 
             color: var(--accent) !important; 
-            border: 1px solid rgba(0, 242, 255, 0.2) !important;
+            border: 1px solid rgba(107, 255, 138, 0.2) !important;
         }
 
+        /* Cinematic UI Overlay */
         .overlay {
             position: absolute;
             top: 0;
@@ -52,17 +54,17 @@
             height: 100%;
             pointer-events: none;
             z-index: 1000;
-            border: 1px solid rgba(0, 242, 255, 0.1);
+            border: 1px solid rgba(107, 255, 138, 0.1);
             box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
         }
 
         .side-panel {
             position: absolute;
             background: var(--panel);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 242, 255, 0.2);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(107, 255, 138, 0.2);
             z-index: 1001;
-            padding: 20px;
+            padding: 24px;
             pointer-events: auto;
             display: flex;
             flex-direction: column;
@@ -72,32 +74,27 @@
         #sidePanel {
             top: 20px;
             right: 20px;
-            width: 350px;
+            width: 380px;
             max-height: calc(100vh - 40px);
         }
 
         #manifestPanel {
-            top: 120px;
+            top: 130px;
             left: 20px;
-            width: 280px;
-            max-height: calc(100vh - 160px);
-            transform: translateX(0);
+            width: 300px;
+            max-height: calc(100vh - 180px);
         }
 
-        .side-panel.hidden {
-            transform: translateX(400px);
-        }
-        #manifestPanel.hidden {
-            transform: translateX(-350px);
-        }
+        .side-panel.hidden { transform: translateX(420px); }
+        #manifestPanel.hidden { transform: translateX(-350px); }
 
         .scanline {
             width: 100%;
             height: 2px;
-            background: rgba(0, 242, 255, 0.1);
+            background: rgba(107, 255, 138, 0.05);
             position: absolute;
             top: 0;
-            animation: scan 8s linear infinite;
+            animation: scan 10s linear infinite;
         }
 
         @keyframes scan {
@@ -105,15 +102,17 @@
             100% { top: 100%; }
         }
 
+        /* Standard Circular Marker */
         .marker-pulse {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background: var(--accent);
             border-radius: 50%;
-            box-shadow: 0 0 0 rgba(0, 242, 255, 0.4);
+            box-shadow: 0 0 0 rgba(107, 255, 138, 0.4);
             animation: pulse 2s infinite;
         }
 
+        /* Creature/Hazard Marker */
         .marker-pulse-hazard {
             width: 18px;
             height: 18px;
@@ -124,9 +123,9 @@
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(0, 242, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(107, 255, 138, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(107, 255, 138, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(107, 255, 138, 0); }
         }
 
         @keyframes pulse-hazard {
@@ -139,14 +138,34 @@
         ::-webkit-scrollbar-thumb { background: var(--accent); }
 
         .manifest-item {
-            border-bottom: 1px solid rgba(0, 242, 255, 0.1);
-            padding: 8px 0;
+            border-bottom: 1px solid rgba(107, 255, 138, 0.1);
+            padding: 10px 0;
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         .manifest-item:hover {
             color: var(--accent);
-            padding-left: 5px;
+            padding-left: 8px;
+            background: rgba(107, 255, 138, 0.05);
+        }
+
+        .btn-archive {
+            pointer-events: auto;
+            background: rgba(107, 255, 138, 0.05);
+            border: 1px solid rgba(107, 255, 138, 0.3);
+            padding: 6px 16px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            color: var(--accent);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .btn-archive:hover {
+            background: var(--accent);
+            color: #000;
         }
     </style>
 </head>
@@ -162,37 +181,40 @@
 
     <div id="map"></div>
 
+    <!-- Manifest Navigation -->
     <div id="manifestPanel" class="side-panel hidden">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-sm font-bold text-cyan-500 tech-font">Data Manifest</h3>
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-sm font-bold text-[#6BFF8A] tech-font">Data Manifest</h3>
             <button onclick="toggleManifest()" class="text-[10px] opacity-50 hover:opacity-100">[ HIDE ]</button>
         </div>
-        <div id="manifestList" class="overflow-y-auto pr-2 text-[11px] uppercase tracking-tighter opacity-80">
-            <!-- Dynamic items -->
+        <div id="manifestList" class="overflow-y-auto pr-2">
+            <!-- Dynamic items populated by JS -->
         </div>
     </div>
 
+    <!-- Detail Panel -->
     <div id="sidePanel" class="side-panel hidden">
         <div class="flex justify-between items-start mb-4">
-            <h2 id="eventTitle" class="text-xl font-bold text-cyan-400">Select Node</h2>
+            <h2 id="eventTitle" class="text-xl font-bold text-[#6BFF8A]">Select Node</h2>
             <button onclick="closePanel()" class="text-xs opacity-50 hover:opacity-100">[ CLOSE ]</button>
         </div>
-        <div class="text-[10px] text-cyan-500 mb-4 tech-font opacity-70">
+        <div class="text-[10px] text-[#6BFF8A] mb-4 tech-font opacity-70">
             Subject: <span id="eventSubject">N/A</span><br>
             Coordinates: <span id="eventCoords">N/A</span>
         </div>
-        <div id="eventContent" class="overflow-y-auto text-sm leading-relaxed text-gray-400 border-t border-cyan-900/50 pt-4">
+        <div id="eventContent" class="overflow-y-auto text-sm leading-relaxed text-gray-300 border-t border-[#6BFF8A]/20 pt-4">
             Select a highlighted data point on the map to decrypt historical records.
         </div>
-        <div class="mt-auto pt-4 tech-font text-[9px] opacity-30">
-            VERIFIED_RECORD_774-B // ACCESS_PUBLIC
+        <div class="mt-auto pt-6 tech-font text-[9px] opacity-30">
+            VERIFIED_RECORD_774-B // ACCESS_PUBLIC // MU-TH-UR
         </div>
     </div>
 
-    <div class="absolute top-6 left-10 z-[1001]">
-        <h1 class="text-2xl font-bold text-white mb-1">Brugg <span class="text-cyan-500">Myths</span></h1>
-        <div class="h-[1px] w-32 bg-cyan-500/50 mb-3"></div>
-        <button onclick="toggleManifest()" class="pointer-events-auto bg-cyan-900/20 border border-cyan-500/30 px-3 py-1 tech-font text-[10px] text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all">
+    <!-- Header Overlay -->
+    <div class="absolute top-8 left-10 z-[1001]">
+        <h1 class="text-3xl font-bold text-white mb-1 tracking-tighter">BRUGG <span class="text-[#6BFF8A]">MYTHS</span></h1>
+        <div class="h-[1px] w-40 bg-[#6BFF8A]/40 mb-4"></div>
+        <button onclick="toggleManifest()" class="btn-archive">
             OPEN ARCHIVE MANIFEST
         </button>
     </div>
@@ -206,13 +228,11 @@
             { id: 5, title: "The Siechenhaus", subject: "The Bell of the Unclean", coords: [47.4890, 8.2160], content: "Located beyond the city walls, this was an infirmary for lepers. They were forced to carry bells to warn citizens of their presence. Rhythmic clicking sounds are still reported nearby on moonless nights.", type: "Dark Event" },
             { id: 6, title: "Roman Curse Tablets", subject: "The Defixio of Vindonissa", coords: [47.4785, 8.2185], content: "Archaeologists found lead tablets used to hire underworld demons for spiritual hit-lists. The secret grudges of ancient legionaries are said to linger in the damp earth.", type: "Ancient Curse" },
             { id: 7, title: "The Three Knocks", subject: "The Tower's Hidden Vault", coords: [47.486120, 8.206750], content: "A tiny unmarked door on the Black Tower. Knocking three times is said to alert the 'Invisible Sentinel.' Some claim the door leads to a vault missing from all city plans.", type: "Secret Code" },
-            { id: 8, title: "The Pope of Dross", subject: "The Great Comic Book Fire", coords: [47.483293, 8.207236], content: "In 1965, authorities held a public 'cleansing' of comic books (Schund). The phantom scent of scorched paper is said to linger near the site during dry evenings.", type: "Historical Cleansing" },
+            { id: 8, title: "The Pope of Dross", subject: "The Great Comic Book Fire", coords: [47.483293, 8.207236], content: "In 1965, authorities held a public 'cleansing' of comic books. The phantom scent of scorched paper is said to linger near the site during dry evenings.", type: "Historical Cleansing" },
             { id: 9, title: "The Chlauschlöpfen", subject: "The Midnight Whip-Crackers", coords: [47.4852, 8.2076], content: "Ancient tradition where deafening whip-cracks echo through the streets to drive away winter spirits. Rhythmic and thunderous, it serves as a warning to both spirits and strangers.", type: "Ancient Ritual" },
             { id: 10, title: "The Rollibock", subject: "The Glacier Guardian", coords: [47.495050, 8.215560], content: "Massive ice-encrusted goat-like entity with glowing eyes. Protectors of nature, it punishes those who mistreat the environment with terrifying roars and clattering ice shards.", type: "Creature" },
             { id: 11, title: "The Night Folk", subject: "Das Nachtvolk Procession", coords: [47.485150, 8.207800], content: "Spectral midnight procession of the recently deceased observed near the Stadtkirche. Witnessing your own doppelgänger in the line is a death sentence within six weeks.", type: "Creature" },
-            { id: 12, title: "The Moränen Hills", subject: "The Devil's Landscape", coords: [47.166200, 8.515500], content: "Located in Zug. Farmers made a pact with the devil for more land. The devil formed uniform hills from below, but they were too steep to farm. The farmers planted holy linden trees on the peaks to drive the devil away; the trees remain there today.", type: "Creature", sector: "Zug" },
-            { id: 13, title: "The Black Cat", subject: "Forest Maze Sentinel", coords: [47.491500, 8.204500], content: "A local Bruggerberg myth. A black cat that perches on the shoulders of travelers in the woods. As long as it sits there, you are cursed to wander the forest, unable to find the exit.", type: "Creature" },
-            { id: 14, title: "The Child Eater", subject: "Chindlifresser Record", coords: [46.947500, 7.444800], content: "Based on the Bernese fountain. A terrifying figure who roams the streets collecting naughty children in a sack to consume them. A grim warning from a more violent historical era.", type: "Creature", sector: "Bern" }
+            { id: 12, title: "The Black Cat", subject: "Forest Maze Sentinel", coords: [47.491500, 8.204500], content: "A local Bruggerberg myth. A black cat that perches on the shoulders of travelers in the woods. As long as it sits there, you are unable to find the exit.", type: "Creature" }
         ];
 
         const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([47.485, 8.210], 15);
@@ -251,19 +271,15 @@
 
             const item = document.createElement('div');
             item.className = 'manifest-item';
-            const sectorTag = event.sector ? `<span class="opacity-40 text-[9px] ml-2">[${event.sector}]</span>` : '';
-            item.innerHTML = `<span>${event.id < 10 ? '0' + event.id : event.id} // ${event.title}${sectorTag}</span>`;
+            item.innerHTML = `<span>${event.id < 10 ? '0' + event.id : event.id} // ${event.title}</span>`;
             item.onclick = () => {
-                map.flyTo(event.coords, 15, { duration: 2 });
+                map.flyTo(event.coords, 16, { duration: 2 });
                 openEvent(event);
             };
             manifestList.appendChild(item);
         });
 
         map.on('click', () => closePanel());
-    </script>
-</body>
-</html>
     </script>
 </body>
 </html>
