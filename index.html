@@ -75,6 +75,7 @@
             top: 20px;
             right: 20px;
             width: 380px;
+            max-width: calc(100vw - 40px);
             max-height: calc(100vh - 40px);
         }
 
@@ -82,11 +83,24 @@
             top: 130px;
             left: 20px;
             width: 300px;
+            max-width: calc(100vw - 40px);
             max-height: calc(100vh - 180px);
         }
 
-        .side-panel.hidden { transform: translateX(420px); }
-        #manifestPanel.hidden { transform: translateX(-350px); }
+        .side-panel.hidden { transform: translateX(110%); }
+        #manifestPanel.hidden { transform: translateX(-110%); }
+
+        /* Handle specific horizontal transform for mobile panels */
+        @media (max-width: 640px) {
+            #sidePanel.hidden { transform: translateY(110%); }
+            #sidePanel {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                width: auto;
+            }
+        }
 
         .scanline {
             width: 100%;
@@ -173,7 +187,7 @@
 
     <div class="overlay">
         <div class="scanline"></div>
-        <div class="absolute bottom-10 left-10 tech-font text-[10px] opacity-40">
+        <div class="absolute bottom-10 left-10 tech-font text-[10px] opacity-40 hidden sm:block">
             LOC_BRUGG_SWITZERLAND // 47.4853° N, 8.2085° E<br>
             STREAMS: ACTIVE // SENSORS: NOMINAL
         </div>
@@ -211,7 +225,7 @@
     </div>
 
     <!-- Header Overlay -->
-    <div class="absolute top-8 left-10 z-[1001]">
+    <div id="mainHeader" class="absolute top-8 left-10 z-[1001] transition-opacity duration-500 pointer-events-auto">
         <h1 class="text-3xl font-bold text-white mb-1 tracking-tighter">BRUGG <span class="text-[#6BFF8A]">MYTHS</span></h1>
         <div class="h-[1px] w-40 bg-[#6BFF8A]/40 mb-4"></div>
         <button onclick="toggleManifest()" class="btn-archive">
@@ -242,15 +256,32 @@
         function openEvent(event) {
             document.getElementById('eventTitle').innerText = event.title;
             document.getElementById('eventSubject').innerText = event.subject;
-            document.getElementById('eventCoords').innerText = `${event.coords[0]}, ${event.coords[1]}`;
+            document.getElementById('eventCoords').innerText = `${event.coords[0].toFixed(4)}, ${event.coords[1].toFixed(4)}`;
             document.getElementById('eventContent').innerText = event.content;
             document.getElementById('sidePanel').classList.remove('hidden');
+            
+            // Mobile Optimization: Hide Header
+            const header = document.getElementById('mainHeader');
+            header.classList.add('opacity-0');
+            header.style.pointerEvents = 'none';
+
             const titleEl = document.getElementById('eventTitle');
             titleEl.style.color = (event.type === 'Creature') ? 'var(--accent-hazard)' : 'var(--accent)';
         }
 
-        function closePanel() { document.getElementById('sidePanel').classList.add('hidden'); }
-        function toggleManifest() { document.getElementById('manifestPanel').classList.toggle('hidden'); }
+        function closePanel() { 
+            document.getElementById('sidePanel').classList.add('hidden'); 
+            
+            // Show Header again
+            const header = document.getElementById('mainHeader');
+            header.classList.remove('opacity-0');
+            header.style.pointerEvents = 'auto';
+        }
+
+        function toggleManifest() { 
+            const manifest = document.getElementById('manifestPanel');
+            manifest.classList.toggle('hidden'); 
+        }
 
         const manifestList = document.getElementById('manifestList');
         events.forEach(event => {
@@ -279,7 +310,12 @@
             manifestList.appendChild(item);
         });
 
-        map.on('click', () => closePanel());
+        map.on('click', (e) => {
+            // Only close if not clicking a marker
+            if (e.originalEvent.target.id === 'map' || e.originalEvent.target.classList.contains('leaflet-container')) {
+                closePanel();
+            }
+        });
     </script>
 </body>
 </html>
