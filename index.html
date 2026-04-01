@@ -105,13 +105,20 @@
             position: fixed;
             width: 0; 
             height: 0; 
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-bottom: 15px solid var(--accent);
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 18px solid var(--accent);
             z-index: 1500;
             opacity: 0.6;
-            pointer-events: none;
+            pointer-events: auto; /* ENABLED FOR CLICKS */
+            cursor: pointer;
             filter: drop-shadow(0 0 5px var(--accent));
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        
+        .edge-indicator:hover {
+            opacity: 1;
+            filter: drop-shadow(0 0 10px var(--accent));
         }
 
         .scanline {
@@ -258,7 +265,7 @@
             { id: 13, title: "Red House Tragedy", subject: "Accidental Burial", coords: [47.4849, 8.2065], content: "During construction, the owner perished in a pitch-black cellar. Tradition holds the structure was completed directly over his unlucky spot, effectively trapping his spirit within the foundation. Locals claim the builder never truly left his subterranean tomb.", type: "Ghost" },
             { id: 14, title: "Blood-Stained Meadow", subject: "Regicide", coords: [47.4806, 8.2183], content: "In 1308, King Albrecht I was assassinated by his nephew in the fields of Windisch. Queen Elizabeth commissioned the monastery on the exact site. Legends persist that the grass once grew a distinctive shade of crimson, nourished by royal blood.", type: "Historical" },
             { id: 15, title: "Bridge of Whispers", subject: "Liminal Phenomena", coords: [47.4908, 8.2325], content: "At the Water Castle convergence of three rivers, the atmosphere grows unnervingly heavy. Ancient lore suggests the currents claim the souls of those who tarry. The water speaks here in a triple-tongued chorus, whispering the secrets of the dead.", type: "Myth" },
-            { id: 16, title: "The Black Cat", subject: "Forest Maze Sentinel", coords: [47.4915, 8.2045], content: "A local Bruggerberg myth of a black cat that perches on shoulders of travelers. As long as it sits there, the traveler is cursed to wander the forest, unable to find the exit.", type: "Creature" },
+            { id: 16, title: "The Black Cat", subject: "Forest Maze Sentinel", coords: [47.4915, 8.2045], content: "A local Bruggerberg myth of a black cat that perches on shoulders of travelers in the woods. As long as it sits there, the traveler is cursed to wander the forest, unable to find the exit.", type: "Creature" },
             { id: 17, title: "The Night Folk", subject: "Spectral Procession", coords: [46.9631, 9.4419], content: "In Vättis, a spectral procession of the recently deceased emerges. One witness recognized his own double at the end of the line; within six weeks, the Black Death claimed 134 victims, exactly as the vision foretold.", type: "Creature", sector: "Vättis" },
             { id: 18, title: "The Devil’s Bridge", subject: "Demonic Compact", coords: [46.6475, 8.5925], content: "Unable to span the Schöllenen Gorge, farmers invoked the Devil to build a crossing for the first soul. Outsmarted by a goat, the Devil tried to crush the bridge with a boulder, but a holy cross saved it. The stone still rests in Göschenen.", type: "Creature", sector: "Schöllenen" },
             { id: 19, title: "The Black Spider", subject: "Demonic Infestation", coords: [47.0275, 7.7264], content: "In Sumiswald, a demonic pact resulted in venomous arachnids bursting from a woman’s skin. The plague was halted when the spider was sealed inside a wooden window post at a local farmhouse, where it remains jailed to this day.", type: "Creature", sector: "Sumiswald" }
@@ -342,12 +349,12 @@
                     indicator.className = 'edge-indicator';
                     
                     // Position at edge of screen
-                    const padding = 40;
+                    const padding = 50;
                     const w = window.innerWidth;
                     const h = window.innerHeight;
                     
-                    let x = (w/2) + (Math.cos(angle) * w/2.5);
-                    let y = (h/2) - (Math.sin(angle) * h/2.5);
+                    let x = (w/2) + (Math.cos(angle) * w/2.2);
+                    let y = (h/2) - (Math.sin(angle) * h/2.2);
                     
                     // Clamp to edges
                     x = Math.max(padding, Math.min(w - padding, x));
@@ -358,6 +365,13 @@
                     indicator.style.transform = `translate(-50%, -50%) rotate(${90-deg}deg)`;
                     
                     if (event.type === 'Creature') indicator.style.borderBottomColor = 'var(--accent-hazard)';
+                    
+                    // ADD CLICK HANDLER TO INDICATOR
+                    indicator.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        map.flyTo(event.coords, 16, { duration: 2 });
+                        openEvent(event);
+                    });
                     
                     container.appendChild(indicator);
                 }
